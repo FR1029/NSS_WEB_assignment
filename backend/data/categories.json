@@ -1,0 +1,6 @@
+[
+  { "name": "Design", "capacity": 2 },
+  { "name": "Marketing", "capacity": 2 },
+  { "name": "Operations", "capacity": 1 },
+  { "name": "Content", "capacity": 1 }
+]
