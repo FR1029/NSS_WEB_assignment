@@ -1,4 +1,4 @@
-## Project Structure
+## Structure
 - `/frontend`: React application for users to submit preferences.
 - `/backend`: Node.js server to handle API requests and run the allocation script.
 
