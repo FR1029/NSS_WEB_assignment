@@ -4,7 +4,7 @@ import type { SubmissionPayload, Category } from "../types";
 
 const API_BASE = "http://localhost:5001";
 
-const DEADLINE = new Date("2026-03-03T21:55:00").getTime(); 
+const DEADLINE = new Date("2026-03-08T22:08:00").getTime(); 
 
 const PreferenceForm = () => {
   const [username, setUsername] = useState<string>("");

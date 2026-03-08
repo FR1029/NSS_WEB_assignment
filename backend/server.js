@@ -1,23 +1,13 @@
 const express = require("express");
 const cors = require("cors");
-const pool = require("./config/db");
+const fs = require("fs");
 const runAllocation = require("./allocate");
-
+runAllocation()
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/categories", async (req, res) => {
-  try {
-    const [rows] = await pool.execute("SELECT name FROM categories");
-    res.json(rows.map(r => r.name));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-const DEADLINE = new Date("2026-03-03T21:55:00"); 
+const DEADLINE = new Date("2026-03-08T22:08:00"); 
 
 app.post("/submit", async (req, res) => {
   if (new Date() > DEADLINE) {
@@ -25,48 +15,29 @@ app.post("/submit", async (req, res) => {
   }
 
   const { username, preferences } = req.body;
-  const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-    const [userResult] = await connection.execute("INSERT INTO users (username) VALUES (?)", [username]);
-
-    const userId = userResult.insertId;
-
-    for (let i = 0; i < preferences.length; i++) {
-      const [cat] = await connection.execute("SELECT id FROM categories WHERE name = ?", [preferences[i]]);
-      if (!cat.length) throw new Error("Invalid category");
-      await connection.execute("INSERT INTO preferences (user_id, category_id, preference_rank) VALUES (?, ?, ?)", [userId, cat[0].id, i]);
+    const prefData = JSON.parse(fs.readFileSync("data/preferences.json", 'utf8'));
+    const alreadySubmitted = prefData.some(p => p.username.toLowerCase() === username.toLowerCase());
+    if(alreadySubmitted) {
+      return res.status(400).json({ error: "User already submitted preferences!"});
     }
-    await connection.commit();
-    res.json({ message: "Saved successfully" });
+    let userId = 0;
+    prefData.forEach(pref => {
+      userId = Math.max(pref.user_id, userId);
+    });
+    userId++;
+    preferences.forEach((name, i) => {
+      prefData.push({
+        user_id: userId,
+        username: username,
+        category_name: name,
+        preference_rank: i
+      });
+    });
+    fs.writeFileSync("data/preferences.json", JSON.stringify(prefData, null, 2));
+    res.json({ message: "Preference submitted!" });
   } catch (err) {
-    await connection.rollback();
     res.status(500).json({ error: err.message });
-  } finally {
-    connection.release();
-  }
-});
-
-const now = Date.now();
-const timeUntilDeadline = DEADLINE - now;
-if (timeUntilDeadline > 0) {
-  setTimeout(async () => {
-    await runAllocation();
-  }, timeUntilDeadline);
-}
-
-app.get("/results", async (req, res) => {
-  try {
-    const [rows] = await pool.execute(`
-      SELECT u.username, c.name as category
-      FROM allocations a
-      JOIN users u ON a.user_id = u.id
-      JOIN categories c ON a.category_id = c.id
-    `);
-
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch results" });
   }
 });
 
