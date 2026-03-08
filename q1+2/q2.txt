@@ -1,1 +1,4 @@
-I will instantly take the misconfigured API endpoint offline or strictly limit access (with admin authentication) to stop any further data exposure, then check the server access logs to determine exactly what sensitive volunteer data was accessed, who accessed it, and the timeframe of the exposure, then notify OC and faculty advisor immediately, then identify the bug in the code, and update it and finally test the final code.
+I will instantly take the misconfigured API endpoint offline or strictly limit access (with admin authentication) to stop any further data exposure.
+Then, identify what data was exposed and how the misconfiguration happened.
+After identifying the issue, I will fix the API configuration.
+After that test the API again to make sure exposure is not happening.

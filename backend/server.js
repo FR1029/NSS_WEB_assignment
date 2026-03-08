@@ -7,6 +7,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/categories", async (req, res) => {
+  try {
+    const categories = JSON.parse(fs.readFileSync("data/categories.json", 'utf8'));
+    res.json(categories.map(c => c.name));
+  } catch (err) {
+    res.status(500).json({ error: "There is no data/categories.json file!" });
+  }
+});
+
 const DEADLINE = new Date("2026-03-08T22:08:00"); 
 
 app.post("/submit", async (req, res) => {
@@ -38,6 +47,15 @@ app.post("/submit", async (req, res) => {
     res.json({ message: "Preference submitted!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/results", async (req, res) => {
+  try {
+    const allocations = JSON.parse(fs.readFileSync("result/allocations.json", 'utf8'));
+    res.json(allocations);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch results" });
   }
 });
 
